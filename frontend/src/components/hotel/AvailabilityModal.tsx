@@ -136,16 +136,8 @@ const AvailabilityModal = ({ room, isOpen, onClose }: AvailabilityModalProps) =>
                 mode="range"
                 selected={{ from: checkInDate, to: checkOutDate }}
                 onSelect={(range) => {
-                  if (range?.from) {
-                    setCheckInDate(range.from);
-                    // Clear availability result when dates change
-                    setAvailability(null);
-                  }
-                  if (range?.to) {
-                    setCheckOutDate(range.to);
-                    // Clear availability result when dates change
-                    setAvailability(null);
-                  }
+                  if (range?.from) setCheckInDate(range.from);
+                  if (range?.to) setCheckOutDate(range.to);
                 }}
                 disabled={(date) => {
                   const today = new Date();
