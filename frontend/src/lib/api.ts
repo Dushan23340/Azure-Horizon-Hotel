@@ -102,13 +102,7 @@ export const createBooking = async (
 // Function to get all bookings
 export const getBookings = async (): Promise<any[]> => {
   try {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${API_BASE_URL}/bookings`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const response = await fetch(`${API_BASE_URL}/bookings`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -125,13 +119,7 @@ export const getBookings = async (): Promise<any[]> => {
 // Function to get a specific booking by ID
 export const getBookingById = async (id: string): Promise<any> => {
   try {
-    const token = localStorage.getItem('token');
-    
-    const response = await fetch(`${API_BASE_URL}/bookings/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const response = await fetch(`${API_BASE_URL}/bookings/${id}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -175,7 +163,7 @@ export const submitInquiry = async (
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json(); 
       throw new Error(errorData.message || errorData.errors?.[0]?.msg || `HTTP error! status: ${response.status}`);
     }
 
@@ -222,7 +210,7 @@ export const updateUserProfile = async (
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json(); 
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
@@ -261,7 +249,7 @@ export const changePassword = async (
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json(); 
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
@@ -313,7 +301,7 @@ export const loginUser = async (
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json(); 
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
@@ -339,7 +327,7 @@ export const registerUser = async (
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json(); 
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
