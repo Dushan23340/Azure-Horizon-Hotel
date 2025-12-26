@@ -1,27 +1,6 @@
 [build]
-builder = "NIXPACKS"
-
-[build.nixpacks]
-phases.setup = '''
-  # Install Node.js
-  nix-env -iA nixpkgs.nodejs-18_x
-  npm install -g npm
-'''
-
-phases.install = '''
-  cd backend
-  npm ci --only=production
-'''
-
-phases.build = '''
-  cd backend
-  # No build step needed for Node.js server
-'''
-
-phases.start = '''
-  cd backend
-  npm start
-'''
+builder = "DOCKERFILE"
+dockerfilePath = "backend/Dockerfile"
 
 [variables]
   MONGODB_URI = { description = "MongoDB connection string", required = true }
