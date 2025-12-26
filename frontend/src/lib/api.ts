@@ -102,7 +102,13 @@ export const createBooking = async (
 // Function to get all bookings
 export const getBookings = async (): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/bookings`);
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`${API_BASE_URL}/bookings`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -119,7 +125,13 @@ export const getBookings = async (): Promise<any[]> => {
 // Function to get a specific booking by ID
 export const getBookingById = async (id: string): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/bookings/${id}`);
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`${API_BASE_URL}/bookings/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -171,6 +183,193 @@ export const submitInquiry = async (
     return data;
   } catch (error) {
     console.error('Error submitting inquiry:', error);
+    throw error;
+  }
+};
+
+// Define types for user profile update
+export interface UpdateUserProfileRequest {
+  name?: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface UpdateUserProfileResponse {
+  message: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    role: string;
+  };
+}
+
+// Function to update user profile
+export const updateUserProfile = async (
+  profileData: UpdateUserProfileRequest
+): Promise<UpdateUserProfileResponse> => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(profileData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    throw error;
+  }
+};
+
+// Define types for password change
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+}
+
+// Function to change user password
+export const changePassword = async (
+  passwordData: ChangePasswordRequest
+): Promise<ChangePasswordResponse> => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`${API_BASE_URL}/users/me/password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(passwordData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error changing password:', error);
+    throw error;
+  }
+};
+
+// Define types for authentication
+export interface UserResponse {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  phone?: string;
+}
+
+export interface AuthResponse {
+  message: string;
+  user: UserResponse;
+  token: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+// Function to login user
+export const loginUser = async (
+  loginData: LoginRequest
+): Promise<AuthResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(loginData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error logging in:', error);
+    throw error;
+  }
+};
+
+// Function to register user
+export const registerUser = async (
+  registerData: RegisterRequest
+): Promise<AuthResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(registerData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error registering:', error);
+    throw error;
+  }
+};
+
+// Function to get all users
+export const getAllUsers = async (): Promise<any[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.users || data;
+  } catch (error) {
+    console.error('Error fetching users:', error);
     throw error;
   }
 };

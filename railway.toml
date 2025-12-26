@@ -1,0 +1,30 @@
+[build]
+builder = "NIXPACKS"
+
+[build.nixpacks]
+phases.setup = '''
+  # Install Node.js
+  nix-env -iA nixpkgs.nodejs-18_x
+  npm install -g npm
+'''
+
+phases.install = '''
+  cd backend
+  npm ci --only=production
+'''
+
+phases.build = '''
+  cd backend
+  # No build step needed for Node.js server
+'''
+
+phases.start = '''
+  cd backend
+  npm start
+'''
+
+[variables]
+  MONGODB_URI = { description = "MongoDB connection string", required = true }
+  JWT_SECRET = { description = "JWT secret for authentication", required = true }
+  PORT = { description = "Port for the backend server", default = "5000" }
+  NODE_ENV = { description = "Node environment", default = "production" }

@@ -26,6 +26,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface BookingFormProps {
   roomId: string;
@@ -44,6 +45,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
   onClose, 
   onSuccess 
 }) => {
+  const { user, isAuthenticated } = useAuth();
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [checkInDate, setCheckInDate] = useState<Date | undefined>(undefined);
@@ -53,6 +55,26 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const [availabilityMessage, setAvailabilityMessage] = useState('');
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Set guest name and email from authenticated user if available
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      setGuestName(user.name || '');
+      setGuestEmail(user.email || '');
+    }
+  }, [isAuthenticated, user]);
+  
+  // Reset form when modal opens or room changes
+  React.useEffect(() => {
+    if (isOpen) {
+      // Only reset dates and availability, keep user info if authenticated
+      setCheckInDate(undefined);
+      setCheckOutDate(undefined);
+      setAvailabilityMessage('');
+      setIsAvailable(null);
+      setErrors({});
+    }
+  }, [isOpen, roomId]);
 
   // Check if a date is in the past (for check-in calendar)
   const isDateDisabled = (date: Date): boolean => {
@@ -85,14 +107,17 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!guestName.trim()) {
-      newErrors.guestName = 'Guest name is required';
-    }
+    if (!isAuthenticated) {
+      // If not authenticated, require guest name and email
+      if (!guestName.trim()) {
+        newErrors.guestName = 'Guest name is required';
+      }
 
-    if (!guestEmail.trim()) {
-      newErrors.guestEmail = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(guestEmail)) {
-      newErrors.guestEmail = 'Email is invalid';
+      if (!guestEmail.trim()) {
+        newErrors.guestEmail = 'Email is required';
+      } else if (!/\S+@\S+\.\S+/.test(guestEmail)) {
+        newErrors.guestEmail = 'Email is invalid';
+      }
     }
 
     if (!checkInDate) {
@@ -163,6 +188,12 @@ const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   const handleBooking = async () => {
+    if (!isAuthenticated) {
+      setErrors({ ...errors, submit: 'You must be logged in to make a booking. Please register or login first.' });
+      toast.error('Please log in to make a booking');
+      return;
+    }
+    
     if (!validateForm()) return;
 
     if (isAvailable === false) {
@@ -233,8 +264,20 @@ const BookingForm: React.FC<BookingFormProps> = ({
               <Input
                 id="guestName"
                 value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
+                onChange={(e) => {
+                  if (!isAuthenticated) {  // Only allow changes if not authenticated
+                    setGuestName(e.target.value);
+                    if (errors.guestName) {
+                      setErrors(prev => {
+                        const newErrors = { ...prev };
+                        delete newErrors.guestName;
+                        return newErrors;
+                      });
+                    }
+                  }
+                }}
                 placeholder="Enter your full name"
+                disabled={isAuthenticated}
               />
               {errors.guestName && (
                 <p className="text-red-500 text-sm">{errors.guestName}</p>
@@ -247,8 +290,20 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 id="guestEmail"
                 type="email"
                 value={guestEmail}
-                onChange={(e) => setGuestEmail(e.target.value)}
+                onChange={(e) => {
+                  if (!isAuthenticated) {  // Only allow changes if not authenticated
+                    setGuestEmail(e.target.value);
+                    if (errors.guestEmail) {
+                      setErrors(prev => {
+                        const newErrors = { ...prev };
+                        delete newErrors.guestEmail;
+                        return newErrors;
+                      });
+                    }
+                  }
+                }}
                 placeholder="Enter your email"
+                disabled={isAuthenticated}
               />
               {errors.guestEmail && (
                 <p className="text-red-500 text-sm">{errors.guestEmail}</p>
@@ -276,7 +331,25 @@ const BookingForm: React.FC<BookingFormProps> = ({
                   <Calendar
                     mode="single"
                     selected={checkInDate}
-                    onSelect={setCheckInDate}
+                    onSelect={(date) => {
+                      setCheckInDate(date);
+                      if (errors.checkInDate) {
+                        setErrors(prev => {
+                          const newErrors = { ...prev };
+                          delete newErrors.checkInDate;
+                          return newErrors;
+                        });
+                      }
+                      // Clear availability status when dates change
+                      if (isAvailable !== null) {
+                        setIsAvailable(null);
+                        setAvailabilityMessage('');
+                      }
+                      // Also clear check-out date when check-in changes
+                      if (date && checkOutDate && new Date(date) >= new Date(checkOutDate)) {
+                        setCheckOutDate(undefined);
+                      }
+                    }}
                     initialFocus
                     disabled={isDateDisabled}
                   />
@@ -306,7 +379,21 @@ const BookingForm: React.FC<BookingFormProps> = ({
                   <Calendar
                     mode="single"
                     selected={checkOutDate}
-                    onSelect={setCheckOutDate}
+                    onSelect={(date) => {
+                      setCheckOutDate(date);
+                      if (errors.checkOutDate) {
+                        setErrors(prev => {
+                          const newErrors = { ...prev };
+                          delete newErrors.checkOutDate;
+                          return newErrors;
+                        });
+                      }
+                      // Clear availability status when dates change
+                      if (isAvailable !== null) {
+                        setIsAvailable(null);
+                        setAvailabilityMessage('');
+                      }
+                    }}
                     initialFocus
                     disabled={isCheckOutDateDisabled}
                   />
